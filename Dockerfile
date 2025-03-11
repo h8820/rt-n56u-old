@@ -13,6 +13,7 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get install -qy \
 	git \
         sudo \
+	kmod \
         build-essential \
 	gawk \
 	pkg-config \
