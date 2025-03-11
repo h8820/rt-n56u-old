@@ -40,10 +40,6 @@ RUN apt-get install -qy \
 
 RUN git clone https://github.com/h8820/rt-n56u-bitbucket.git /opt/rt-n56u
 
-RUN sudo git clone https://github.com/gorden5566/padavan.git && cd padavan
-
 RUN sudo cp -r /opt/padavan/trunk /opt/rt-n56u/
 
 RUN cd /opt/rt-n56u/toolchain-mipsel && ./clean_sources && ./build_toolchain_3.4.x
-
-RUN cd /opt/rt-n56u/trunk && ./clear_tree && ./build_firmware
