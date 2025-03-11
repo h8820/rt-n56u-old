@@ -42,7 +42,7 @@
 #define DEF_WLAN_2G_PSK		"1234567890"
 #define DEF_WLAN_5G_PSK		"1234567890"
 
-#define DEF_ROOT_PASSWORD	"admin"
+#define DEF_ROOT_PASSWORD	""
 #define DEF_SMB_WORKGROUP	"WORKGROUP"
 #define DEF_TIMEZONE		"GMT0"
 #define DEF_NTP_SERVER0		"pool.ntp.org"
