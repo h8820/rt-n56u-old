@@ -12,9 +12,9 @@ ENV LC_ALL en_US.UTF-8
 
 RUN apt-get install -qy \
 	git \
-    sudo \
+        sudo \
 	kmod \
-    build-essential \
+        build-essential \
 	gawk \
 	pkg-config \
 	gettext \
