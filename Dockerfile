@@ -13,8 +13,7 @@ ENV LC_ALL en_US.UTF-8
 RUN apt-get install -qy \
 	git \
         sudo \
-        --no-install-recommends \
-	build-essential \
+        build-essential \
 	gawk \
 	pkg-config \
 	gettext \
