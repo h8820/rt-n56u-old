@@ -1,6 +1,6 @@
 FROM ubuntu:xenial
 
-MAINTAINER Andy Voigt <voigt-andy@hotmail.de>
+LABEL Andy Voigt <voigt-andy@hotmail.de>
 
 ENV DEBIAN_FRONTEND noninteractive
 
@@ -37,6 +37,8 @@ RUN apt-get install -qy \
 	python-docutils
 
 
-RUN git clone https://bitbucket.org/padavan/rt-n56u.git /opt/rt-n56u
+RUN git clone https://github.com/h8820/rt-n56u-bitbucket.git /opt/rt-n56u
 
 RUN cd /opt/rt-n56u/toolchain-mipsel && ./clean_sources && ./build_toolchain_3.4.x
+
+RUN cd /opt/rt-n56u/trunk && ./clear_tree && ./build_firmware
