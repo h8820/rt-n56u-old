@@ -15,6 +15,7 @@ RUN apt-get update && \
         git \
         sudo \
         kmod \
+        p7zip-full \
         build-essential \
         gawk \
         pkg-config \
