@@ -36,8 +36,7 @@ RUN apt-get update && \
         vim \
         gperf \
         python-docutils && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+  
 
 RUN git clone https://github.com/h8820/rt-n56u-bitbucket.git /opt/rt-n56u
 
