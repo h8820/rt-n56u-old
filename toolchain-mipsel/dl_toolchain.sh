@@ -1,7 +1,7 @@
 #!/bin/sh
 
 DIR="toolchain-3.4.x"
-DL_NAME="toolchain-3.4.x7z"
+DL_NAME="mipsel-linux-uclibc.tar.xz"
 
 if [ -d "$DIR" ]; then
     echo "$DIR exists!"
