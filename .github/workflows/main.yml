@@ -48,7 +48,8 @@ jobs:
           # 克隆源代码仓库
           git clone https://github.com/h8820/rt-n56u-old.git /opt/rt-n56u && \
           cd /opt/rt-n56u/toolchain-mipsel && \
-          sh dl_toolchain.sh && \
+          ./clean_sources && \
+          ./build_toolchain_3.4.x
           # 创建输出目录
           mkdir -p /opt/images/ && \
           # 构建固件
