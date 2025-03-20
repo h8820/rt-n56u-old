@@ -1,169 +1,177 @@
+.EXPORT_ALL_VARIABLES:
+.PHONY: all romfs clean
+
 ifndef ROOTDIR
-ROOTDIR=../..
+ROOTDIR=..
 endif
 
-ROMFS_DIR = $(ROOTDIR)/romfs
+ifndef ROMFSDIR
+ROMFSDIR=$(ROOTDIR)/romfs
+endif
 
-include $(ROOTDIR)/user/shared/boards.mk
+UCLINUX_BUILD_USER=1
+-include $(LINUX_CONFIG)
+include $(PROJECT_CONFIG)
+include $(ARCH_CONFIG)
 
-PROJECT_HOME_URL="https:\/\/bitbucket.org\/padavan\/rt-n56u\/"
-LABEL_COPYRIGHT_TEXT="© 2011-2016 Padavan \& N56U project community"
+INSTALLDIR = $(ROOTDIR)/romfs
 
-BOARD_PATTERN=s/ZVMODELVZ/$(CONFIG_FIRMWARE_PRODUCT_ID)/g
-COPYR_PATTERN=s/ZVCOPYRVZ/$(LABEL_COPYRIGHT_TEXT)/g
-DWURL_PATTERN=s/ZVDWURLVZ/$(PROJECT_HOME_URL)/g
+FS_EXT_ENABLED=n
+FS_FAT_ENABLED=n
+FS_NTFS_ENABLED=n
+STORAGE_ENABLED=n
+OPENSSH_ENABLED=n
+DROPBEAR_ENABLED=n
+SAMBA_ENABLED=n
+ifneq ($(CONFIG_FIRMWARE_INCLUDE_OPENSSH),y)
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_DROPBEAR),y)
+DROPBEAR_ENABLED=y
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_SFTP),y)
+OPENSSH_ENABLED=y
+endif
+endif
+else
+OPENSSH_ENABLED=y
+endif
 
-WEBUI_NAME=n56u_ribbon_fixed
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_WINS),y)
+SAMBA_ENABLED=y
+endif
+
+ifdef CONFIG_MMC_BLOCK
+STORAGE_ENABLED=y
+endif
+ifdef CONFIG_BLK_DEV_SD
+STORAGE_ENABLED=y
+endif
+
+ifeq ($(STORAGE_ENABLED),y)
+ifeq ($(CONFIG_FIRMWARE_ENABLE_EXT2),y)
+FS_EXT_ENABLED=y
+endif
+ifeq ($(CONFIG_FIRMWARE_ENABLE_EXT3),y)
+FS_EXT_ENABLED=y
+endif
+ifeq ($(CONFIG_FIRMWARE_ENABLE_EXT4),y)
+FS_EXT_ENABLED=y
+endif
+ifeq ($(CONFIG_FIRMWARE_ENABLE_FAT),y)
+FS_FAT_ENABLED=y
+endif
+ifeq ($(CONFIG_FIRMWARE_ENABLE_EXFAT),y)
+FS_FAT_ENABLED=y
+endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_NTFS_3G),y)
+FS_NTFS_ENABLED=y
+endif
+ifeq ($(CONFIG_FIRMWARE_INCLUDE_SMBD),y)
+SAMBA_ENABLED=y
+endif
+endif
+
+dir_y =
+dir_n =
+dir_  =
+
+dir_y						+= busybox
+dir_y						+= iptables
+dir_$(CONFIG_FIRMWARE_INCLUDE_IPSET)		+= ipset
+dir_y						+= ebtables
+dir_y						+= iproute2
+dir_y						+= wireless_tools
+dir_y						+= shared
+dir_$(STORAGE_ENABLED)				+= libdisk
+dir_y						+= nvram
+dir_y						+= mtd_write
+dir_y						+= networkmap
+dir_y						+= httpd
+dir_y						+= www
+dir_y						+= rc
+dir_y						+= infosvr
+dir_y						+= inadyn
+dir_y						+= miniupnpd
+dir_y						+= dnsmasq
+dir_y						+= igmpproxy
+dir_y						+= udpxy
+dir_y						+= utils
+dir_y						+= lanauth
+dir_y						+= 802.1x
+dir_y						+= wpa_supplicant
+dir_y						+= pppd
+dir_y						+= pppoe
+dir_y						+= accel-pptpd
+dir_y						+= xl2tpd
+dir_$(CONFIG_FIRMWARE_INCLUDE_RPL2TP)		+= rp-l2tp
+dir_y						+= lldt
+dir_y						+= scripts
+dir_$(OPENSSH_ENABLED)				+= openssh
+dir_$(DROPBEAR_ENABLED)				+= dropbear
+dir_$(CONFIG_FIRMWARE_INCLUDE_OPENVPN)		+= openvpn
+dir_$(CONFIG_FIRMWARE_INCLUDE_SSWAN)		+= strongswan
+dir_$(CONFIG_FIRMWARE_INCLUDE_XUPNPD)		+= xupnpd
+dir_$(CONFIG_FIRMWARE_INCLUDE_TCPDUMP)		+= tcpdump
+dir_$(SAMBA_ENABLED)				+= samba3
+
+ifdef CONFIG_BLK_DEV_SD
+dir_$(CONFIG_FIRMWARE_INCLUDE_HDPARM)		+= hdparm
+endif
+
+ifdef CONFIG_USB_SUPPORT
+dir_y						+= p910nd
+dir_y						+= usb-modeswitch
+dir_y						+= comgt-0.32
+dir_y						+= uqmi
+dir_$(CONFIG_FIRMWARE_INCLUDE_LPRD)		+= LPRng
+dir_$(CONFIG_FIRMWARE_INCLUDE_U2EC)		+= u2ec
+endif
+
+ifeq ($(STORAGE_ENABLED),y)
+dir_y						+= nfsd
+dir_y						+= util-linux
+dir_y						+= optware
+dir_$(FS_EXT_ENABLED)				+= e2fsprogs
+dir_$(FS_FAT_ENABLED)				+= dosfstools
+dir_$(FS_NTFS_ENABLED)				+= ntfs-3g
+dir_$(CONFIG_FIRMWARE_INCLUDE_PARTED)		+= parted
+dir_$(CONFIG_FIRMWARE_INCLUDE_FTPD)		+= vsftpd
+dir_$(CONFIG_FIRMWARE_INCLUDE_MINIDLNA)		+= minidlna
+dir_$(CONFIG_FIRMWARE_INCLUDE_FIREFLY)		+= firefly
+dir_$(CONFIG_FIRMWARE_INCLUDE_TRANSMISSION)	+= transmission
+dir_$(CONFIG_FIRMWARE_INCLUDE_ARIA)		+= aria2
+endif
+
+ifdef CONFIG_MTD_UBI
+ifneq ($(STORAGE_ENABLED),y)
+dir_y						+= util-linux
+dir_y						+= optware
+endif
+dir_y						+= mtd-utils
+endif
 
 all:
+	for i in $(dir_y) ; do \
+		[ ! -d $$i ] || \
+		$(MAKE) -j1 -C $$i || \
+		exit $$? ; \
+	done
+
+%_only:
+	$(MAKE) -C $(@:_only=)
+
+%_romfs:
+	$(MAKE) -C $(@:_romfs=) romfs
+
+%_clean:
+	$(MAKE) -C $(@:_clean=) clean
 
 romfs:
-	echo "Make www romfs"
-	rm -Rf $(ROMFS_DIR)/www
-	cp -R $(WEBUI_NAME) $(ROMFS_DIR)/www
-	rm -f $(ROMFS_DIR)/www/httpd_check.htm
-	echo "ASUSTeK" > $(ROMFS_DIR)/www/httpd_check.htm
-	cd $(ROMFS_DIR)/www && ln -sf /opt/share/www/custom custom
-	cp dict/EN.header $(ROMFS_DIR)/www
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_BR),y)
-	echo "LANG_BR=Brazil" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/BR.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/BR.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/BR.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/BR.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_CZ),y)
-	echo "LANG_CZ=Česky" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/CZ.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/CZ.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/CZ.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/CZ.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_DA),y)
-	echo "LANG_DA=Dansk" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/DA.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/DA.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/DA.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/DA.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_DE),y)
-	echo "LANG_DE=Deutsch" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/DE.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/DE.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/DE.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/DE.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_ES),y)
-	echo "LANG_ES=Español" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/ES.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/ES.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/ES.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/ES.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_FI),y)
-	echo "LANG_FI=Finsk" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/FI.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/FI.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/FI.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/FI.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_FR),y)
-	echo "LANG_FR=Français" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/FR.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/FR.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/FR.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/FR.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_NO),y)
-	echo "LANG_NO=Norsk" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/NO.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/NO.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/NO.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/NO.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_PL),y)
-	echo "LANG_PL=Polski" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/PL.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/PL.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/PL.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/PL.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_RU),y)
-	echo "LANG_RU=Pусский" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/RU.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/RU.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/RU.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/RU.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_SV),y)
-	echo "LANG_SV=Svensk" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/SV.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/SV.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/SV.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/SV.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_UK),y)
-	echo "LANG_UK=Українська" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/UK.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/UK.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/UK.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/UK.dict
-endif
-ifeq ($(CONFIG_FIRMWARE_INCLUDE_LANG_CN),y)
-	echo "LANG_CN=简体中文" >> $(ROMFS_DIR)/www/EN.header
-	cp dict/CN.dict $(ROMFS_DIR)/www
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/CN.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/CN.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/CN.dict
-endif
-	cat $(ROMFS_DIR)/www/EN.header dict/EN.footer > $(ROMFS_DIR)/www/EN.dict
-	sed $(BOARD_PATTERN) -i $(ROMFS_DIR)/www/EN.dict
-	sed $(COPYR_PATTERN) -i $(ROMFS_DIR)/www/EN.dict
-	sed $(DWURL_PATTERN) -i $(ROMFS_DIR)/www/EN.dict
-	rm -f $(ROMFS_DIR)/www/EN.header
-	rm -f $(ROMFS_DIR)/www/bootstrap/js/bootstrap.js
-	rm -f $(ROMFS_DIR)/www/bootstrap/js/engage.itoggle.js
-	rm -f $(ROMFS_DIR)/www/bootstrap/js/jquery.backgroundpos.min.js
-	rm -f $(ROMFS_DIR)/www/bootstrap/js/jquery.easing.1.3.js
-	rm -f $(ROMFS_DIR)/www/bootstrap/css/bootstrap.css
-ifeq ($(BOARD_HAS_5G_RADIO),0)
-	rm -f $(INSTALLDIR)/www/Advanced_ACL_Content.asp
-	rm -f $(INSTALLDIR)/www/Advanced_WAdvanced_Content.asp
-	rm -f $(INSTALLDIR)/www/Advanced_WGuest_Content.asp
-	rm -f $(INSTALLDIR)/www/Advanced_Wireless_Content.asp
-	rm -f $(INSTALLDIR)/www/Advanced_WMode_Content.asp
-	rm -f $(INSTALLDIR)/www/Advanced_WSecurity_Content.asp
-	rm -f $(INSTALLDIR)/www/Main_WStatus_Content.asp
-	rm -f $(INSTALLDIR)/www/wireless.js
-	rm -f $(INSTALLDIR)/www/wds_aplist.asp
-	rm -f $(INSTALLDIR)/www/device-map/router.asp
-endif
-ifndef CONFIG_IPV6
-	rm -f $(INSTALLDIR)/www/Advanced_IPv6_Content.asp
-endif
-ifndef CONFIG_ATA
-	rm -f $(INSTALLDIR)/www/device-map/sata.asp
-endif
-ifndef CONFIG_USB_SUPPORT
-	rm -f $(INSTALLDIR)/www/Advanced_Modem_others.asp
-	rm -f $(INSTALLDIR)/www/Advanced_Printer_others.asp
-	rm -f $(INSTALLDIR)/www/modem_isp.js
-	rm -f $(INSTALLDIR)/www/device-map/modem.asp
-	rm -f $(INSTALLDIR)/www/device-map/printer.asp
-	rm -f $(INSTALLDIR)/www/device-map/hub.asp
-endif
-ifneq ($(STORAGE_ENABLED),y)
-	rm -f $(INSTALLDIR)/www/Advanced_AiDisk_ftp.asp
-	rm -f $(INSTALLDIR)/www/Advanced_AiDisk_others.asp
-	rm -f $(INSTALLDIR)/www/Advanced_AiDisk_samba.asp
-	rm -f $(INSTALLDIR)/www/aidisk.asp
-	rm -f $(INSTALLDIR)/www/disk_folder_tree.js
-	rm -f $(INSTALLDIR)/www/device-map/disk.asp
-	rm -f $(INSTALLDIR)/www/device-map/safely_remove_disk.asp
-	rm -rf $(INSTALLDIR)/www/aidisk
-	rm -rf $(INSTALLDIR)/www/images/AiDisk
-	rm -rf $(INSTALLDIR)/www/images/Tree
-endif
+	for i in $(dir_y) ; do \
+		[ ! -d $$i ] || \
+		$(MAKE) -C $$i romfs ; \
+	done
 
 clean:
-	@echo "Clean www romfs"
+	for i in `ls -d *` ; do \
+		[ ! -d $$i ] || \
+		$(MAKE) -C $$i clean ; \
+	done
