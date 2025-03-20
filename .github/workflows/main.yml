@@ -54,10 +54,6 @@ jobs:
           # 构建固件
           cd /opt/rt-n56u/trunk && \
           TNAME=yk_l1_full && \
-          if [ ! -f configs/templates/$TNAME.config ] ; then \
-            echo 'configs/templates/${TNAME}.config not found '; \
-            exit 1; \
-          fi && \
           cp -f configs/templates/${TNAME}.config .config && \
           sudo ./clear_tree && \
           sudo ./build_firmware && \
