@@ -41,12 +41,11 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # 克隆 rt-n56u-bitbucket 仓库
-RUN git clone https://github.com/h8820/rt-n56u.git /opt/rt-n56u
+RUN git clone https://github.com/h8820/rt-n56u-old.git /opt/rt-n56u
 
 # 运行构建命令
 RUN cd /opt/rt-n56u/toolchain-mipsel && \
-    ./clean_sources && \
-    ./build_toolchain_3.4.x
+    sh dl_toolchain.sh
 
 # 设定工作目录（可以选择性添加，根据后续运行需要）
 WORKDIR /opt/rt-n56u
