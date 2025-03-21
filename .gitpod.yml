@@ -1,16 +1,8 @@
 version: 1
 
-# 使用自定义的 Dockerfile
 image:
   file: Dockerfile
 
-# 定义在工作区启动时执行的任务
 tasks:
-  - command: |
-      cd /opt/rt-n56u/toolchain-mipsel && \
-      ./clean_sources && \
-      ./build_toolchain_3.4.x
-
-# 指定工作区
-workspace:
-  folder: /opt/rt-n56u
+  - command: >
+      cd /opt/rt-n56u/toolchain-mipsel && ./clean_sources && ./build_toolchain_3.4.x
