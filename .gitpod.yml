@@ -9,12 +9,8 @@ tasks:
   - init: |
       # 初始化步骤，您可以根据需要添加命令
       echo "Initializing workspace..."
-    command: |
-      # 进入目录并构建工具链
-      cd /opt/rt-n56u/toolchain-mipsel
-      ./clean_sources
-      ./build_toolchain_3.4.x
 
+     
 # 配置 VS Code 扩展（如果需要）
 vscode:
   extensions:
