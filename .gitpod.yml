@@ -4,13 +4,13 @@ version: 1
 image:
   file: Dockerfile
 
-# 定义在启动工作区时执行的任务
+# 定义在工作区启动时执行的任务
 tasks:
-  - init: |
+  - command: |
       cd /opt/rt-n56u/toolchain-mipsel && \
       ./clean_sources && \
       ./build_toolchain_3.4.x
 
-# 指定工作目录
+# 指定工作区
 workspace:
   folder: /opt/rt-n56u
