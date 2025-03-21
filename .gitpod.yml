@@ -1,8 +1,0 @@
-version: 1
-
-image:
-  file: Dockerfile
-
-tasks:
-  - command: >
-      cd /opt/rt-n56u/toolchain-mipsel && ./clean_sources && ./build_toolchain_3.4.x
