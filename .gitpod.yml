@@ -1,0 +1,25 @@
+version: 1
+
+# 使用自定义 Docker 镜像构建配置
+image:
+  file: .gitpod.Dockerfile
+
+# 配置任务
+tasks:
+  - init: |
+      # 初始化步骤，您可以根据需要添加命令
+      echo "Initializing workspace..."
+    command: |
+      # 进入目录并构建工具链
+      cd /opt/rt-n56u/toolchain-mipsel
+      ./clean_sources
+      ./build_toolchain_3.4.x
+
+# 配置 VS Code 扩展（如果需要）
+vscode:
+  extensions:
+    - ms-python.python  # 根据需要添加您需要的扩展
+
+# 配置环境变量（如果需要）
+env:
+  MY_ENV_VAR: "SomeValue"
